@@ -1,72 +1,73 @@
-// (async () => {
-//     const promise = fetch("./main.wasm");
-//     const module = await WebAssembly.instantiateStreaming(promise);
-
-//     console.log(module);
-// })();
-
 let instance;
+
+let canvas = document.getElementById("canvas").getContext("2d");
+canvas.canvas.width = window.innerWidth;
+canvas.canvas.height = window.innerHeight;
+
+let lastRender;
 
 fetch('./main.wasm').then(response =>
         response.arrayBuffer()
     ).then(bytes => WebAssembly.instantiate(bytes)).then(results => {
         instance = results.instance;
-        document.getElementById("container").textContent = instance.exports.calc_mandelbrot(0,0,500);
     }).catch(console.error);
 
 function calcPoint(x, y, qual) {
     return instance.exports.calc_mandelbrot(x,y,qual);
 }
 
-const STEP = 720;
-
-function genImage() {
-    const out = [];
-    for(x = -1; x < 1; x+=2/STEP) {
-        const row = []
-        for (let y = -1; y < 1; y+=2/STEP) {
-            row.push(calcPoint(x,y,500));
-        }
-        out.push(row);
-    }
-    return out;
+function buttonPressed() {
+    let x = Number(document.getElementById("x coordinate").value);
+    let y = Number(document.getElementById("y coordinate").value);
+    let radius = Number(document.getElementById("radius").value);
+    let iters = Number(document.getElementById("iterations").value);
+    render(x,y,radius,iters);
 }
 
-// function displayImage() {
-//     const container = document.getElementsByClassName("grid-container")[0];
-//     let point;
-//     let div;
-//     for(x = -1; x < 1; x+=2/STEP) {
-//         for (let y = -1; y < 1; y+=2/STEP) {
-//             point = calcPoint(x,y,500);
-//             div = document.createElement("div")
-//             div.className = "grid-item";
-//             div.innerText = point;
-//             div.style.backgroundColor = point;
-//             container.appendChild(div);
-//         }
-//     }
-//     console.log("done");
-// }
+function render(centerA, centerB, radius, quality) {
 
-function displayImage(qual) {
-    const table = document.getElementById("table");
+    lastRender = {
+        "centerA": centerA,
+        "centerB": centerB,
+        "radius": radius,
+        "quality": quality
+    }
+    
+    let width   = canvas.canvas.width;
+    let height  = canvas.canvas.height;
+    let countWidth  = 0;
+    let countHeight = 0;
+    let longer = width > height ? width: height;
+    let goToHeight = centerB - (radius*height) / longer;
+    let goToWidth  = centerA + (radius*width)  / longer;
     let point;
-    let item;
-    let row;
+
     let start = new Date();
     start = start.getTime();
-    for(x = -2; x < 2; x+=4/STEP) {
-        row = document.createElement("tr");
-        for (let y = -2; y < 2; y+=4/STEP) {
-            point = calcPoint(y,x,qual);
-            item = document.createElement("td");
-            // item.innerText = point;
-            item.style.backgroundColor = point===qual ? "#000000" : "rgb("+(point%255%50*50)%255+","+((point%255%50*50)+100)%255 +","+((point%255%50*50)+150)%255 +")";
-            row.appendChild(item);
+    for (h = centerB + (radius*height)/longer; h >= goToHeight && countHeight < height - 1; h -= (2*radius)/longer){
+        for (w = centerA - (radius*width)/longer; w <= goToWidth && countWidth < width - 1; w += (2*radius)/longer) {
+            countWidth++;
+            point = calcPoint(w,h,quality);
+            canvas.fillStyle = point===quality ? "#000000" : "rgb("+(point%255%50*50)%255+","+((point%255%50*50)+100)%255 +","+((point%255%50*50)+150)%255 +")";
+            canvas.fillRect( countWidth, countHeight, 1, 1 );
         }
-        table.appendChild(row);
+        countWidth = 0;
+        countHeight++;
     }
     let end = new Date();
-    console.log((end.getTime()-start)/1000 + " seconds");
+    console.log("Done with quality of", quality, "after", (end.getTime()-start)/1000 + " seconds");
 }
+
+window.addEventListener('resize', function() {
+    canvas.canvas.width = window.innerWidth;
+    canvas.canvas.height = window.innerHeight;
+    if (lastRender){
+        let {centerA, centerB, radius, quality} = lastRender;
+        render(centerA, centerB, radius, quality);
+    }
+}, true);
+
+
+/**Good renders
+ * render(-0.7453,.1107,6.5E-4,1000);
+ */

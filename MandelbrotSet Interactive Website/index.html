@@ -6,12 +6,15 @@
     <title>Document</title>
 </head>
 <body>
-    <div id="container"></div>
-    <!-- <div class="grid-container"></div> -->
-    <table id="table">
-
-    </table>
+    <canvas id="canvas"></canvas>
+    <div>
+        <input type="number" id="x coordinate" placeholder="x coordinate"value=0 required>
+        <input type="number" id="y coordinate" placeholder="y coordinate" value=0 required>
+        <input type="number" id="radius" placeholder="radius" value=2 required>
+        <input type="number" id="iterations" placeholder="iterations" value=100 required>
+        <button onclick="buttonPressed()">Render</button>
+    </div>
 </body>
-<script src="scripts.js"></script>
+<script src="scripts.js" loading="lazy"></script>
 <link rel="stylesheet" href="./css.css">
 </html>

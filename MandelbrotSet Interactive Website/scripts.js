@@ -1,5 +1,12 @@
-let instance;
+/**Good renders
+ * Similar website: https://guciek.github.io/web_mandelbrot.html#0;0;1;1000
+ * Test zooms: http://www.cuug.ab.ca/~dewara/mandelbrot/Mandelbrowser.html
+ * Too zoomed in probably???: http://superliminal.com/fractals/mbrot/mbrot.htm
+ * render(-0.7453,.1107,6.5E-4,1000);
+ */
 
+
+let instance;
 let canvas = document.getElementById("canvas").getContext("2d");
 canvas.canvas.width = window.innerWidth;
 canvas.canvas.height = window.innerHeight;
@@ -10,6 +17,20 @@ fetch('./main.wasm').then(response =>
         response.arrayBuffer()
     ).then(bytes => WebAssembly.instantiate(bytes)).then(results => {
         instance = results.instance;
+
+        lastRender = {
+            "centerA": 0,
+            "centerB": 0,
+            "radius": 2,
+            "quality": 100
+        };
+
+        document.getElementById("x coordinate").value = lastRender.centerA;
+        document.getElementById("y coordinate").value = lastRender.centerB
+        document.getElementById("radius").value = lastRender.radius;
+        document.getElementById("iterations").value = lastRender.quality;
+
+        render(lastRender.centerA, lastRender.centerB, lastRender.radius, lastRender.quality);
     }).catch(console.error);
 
 function calcPoint(x, y, qual) {
@@ -66,8 +87,3 @@ window.addEventListener('resize', function() {
         render(centerA, centerB, radius, quality);
     }
 }, true);
-
-
-/**Good renders
- * render(-0.7453,.1107,6.5E-4,1000);
- */
